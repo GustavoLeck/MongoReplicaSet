@@ -1,0 +1,36 @@
+version: "3.3"
+
+networks:
+  mongoNet:
+   name: mongoNet
+   driver: bridge
+
+services:
+  m1:
+    build: .
+    networks:
+      - mongoNet
+    restart: always
+    container_name: m1
+    image: m1
+    ports:
+      - "30001:27017"
+  m2:
+    build: .
+    networks:
+      - mongoNet
+    restart: always
+    container_name: m2
+    image: m2
+    ports:
+      - "30002:27017"
+  m3:
+    build: .
+    networks:
+      - mongoNet
+    restart: always
+    container_name: m3
+    image: m3
+    ports:
+      - "30003:27017"
+
