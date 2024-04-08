@@ -1,11 +1,26 @@
 version: "3.3"
 
+volumes:
+  mongo-keys:
+  m1:
+  m2:
+  m3:
+
+
 networks:
   mongoNet:
-   name: mongoNet
-   driver: bridge
+    name: mongoNet
+    driver: bridge
 
 services:
+
+  mongo-keys:
+    image: depop/openssl-bats
+    container_name: mongo-keys
+    volumes:
+      - mongo-keys:/mongo-conf
+    command: 'bash -c "openssl rand -base64 741 > /mongo-conf/mongodb-keyfile; chmod 600 /mongo-conf/mongodb-keyfile; chown 999 /mongo-conf/mongodb-keyfile"'
+
   m1:
     build: .
     networks:
@@ -13,8 +28,15 @@ services:
     restart: always
     container_name: m1
     image: m1
+    volumes:
+      - mongo-keys:/opt/keyfile
+      - m1:/data/db
+    env_file: ./mongod.env
     ports:
       - "30001:27017"
+    command: 'mongod --auth --keyFile /opt/keyfile/mongodb-keyfile --replSet mongoSet'
+    depends_on:
+      - mongo-keys
   m2:
     build: .
     networks:
@@ -22,8 +44,15 @@ services:
     restart: always
     container_name: m2
     image: m2
+    volumes:
+      - mongo-keys:/opt/keyfile
+      - m2:/data/db
+    env_file: ./mongod.env
     ports:
       - "30002:27017"
+    command: 'mongod --auth --keyFile /opt/keyfile/mongodb-keyfile --replSet mongoSet'
+    depends_on:
+      - mongo-keys
   m3:
     build: .
     networks:
@@ -31,6 +60,12 @@ services:
     restart: always
     container_name: m3
     image: m3
+    volumes:
+      - mongo-keys:/opt/keyfile
+      - m3:/data/db
+    env_file: ./mongod.env
     ports:
       - "30003:27017"
-
+    command: 'mongod --auth --keyFile /opt/keyfile/mongodb-keyfile --replSet mongoSet'
+    depends_on:
+      - mongo-keys
